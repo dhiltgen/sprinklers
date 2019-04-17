@@ -1,0 +1,23 @@
+Thoughts on next steps.
+
+
+DONE 1. Get the relays mounted, wired, and hooked up to the real
+   circuits.
+DONE 2. Backup the old sprinkler image and create a fresh one with docker and the app
+3. Set up cron job to run the simple script to start watering
+
+
+DONE 4. Add prometheus metrics to the server
+5. Add two metrics
+    - a simple bool that says if we're actively watering
+    - a gauge that shows active rainfall
+DONE 6. Start prometheus scraping them - maybe every 30s?
+7. have a very long timeframe and see how prometheus does
+    - federation and downsampling maybe?
+8. Create app for rain gauge that sends data to update the sprinkler accumulation counters
+
+
+1. Start building external Driver app to decide when to water
+2. Each circuit would have a target water goal, possibly based on temp too
+3. app would periodically look at prometheus and decide which circuits need watering
+
