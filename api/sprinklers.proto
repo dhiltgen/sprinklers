@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package sprinklers;
+
+import "google/protobuf/duration.proto";
+
+
+message Circuit {
+    string Name = 1;
+    double WaterConsumption = 2;
+    bool State = 3;
+    google.protobuf.Duration TimeRemaining = 4;
+}
+
+message ListCircuitsRequest { }
+message ListCircuitsResponse {
+    repeated Circuit Items = 1;
+}
+
+
+service SprinklerService {
+    rpc ListCircuits (ListCircuitsRequest) returns (ListCircuitsResponse) {}
+    // TODO - StartCircuit
+    // TODO - StopCircuit
+    // TODO - InspectCircuit
+}
+
