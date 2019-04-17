@@ -26,6 +26,7 @@ RUN git clone https://github.com/google/protobuf /tmp/protobuf && \
     ./autogen.sh && \
     ./configure && make install
 
+RUN go get -u github.com/golang/protobuf/protoc-gen-go
 
 COPY . /go/src/github.com/dhiltgen/sprinklers
 WORKDIR /go/src/github.com/dhiltgen/sprinklers
@@ -36,12 +37,15 @@ WORKDIR /go/src/github.com/dhiltgen/sprinklers
 RUN cd api && protoc ./sprinklers.proto --go_out=plugins=grpc:sprinklers
 
 RUN go build -a -tags "netgo static_build" -installsuffix netgo \
-    -ldflags "-w -extldflags '-static'" -o /bin/sprinklers ./api/main/main.go
+    -ldflags "-w -extldflags '-static'" -o /bin/sprinklerd ./api/main/main.go
+RUN go build -a -tags "netgo static_build" -installsuffix netgo \
+    -ldflags "-w -extldflags '-static'" -o /bin/sprinklers ./client/main.go
 
 
 FROM alpine:3.9
 
+COPY --from=builder /bin/sprinklerd /bin
 COPY --from=builder /bin/sprinklers /bin
 COPY --from=builder /go/src/github.com/dhiltgen/sprinklers/circuits.json .
 
-CMD /bin/sprinklers
+CMD /bin/sprinklerd
