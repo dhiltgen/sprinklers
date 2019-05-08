@@ -16,7 +16,7 @@ func newDummyPin(_ uint8) Pin {
 	return dummyPin{}
 }
 
-func dummyInit() {
+func DummyInit() {
 	newPin = newDummyPin
 	pinsInit = func() error { return nil }
 }

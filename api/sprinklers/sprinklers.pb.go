@@ -26,10 +26,14 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type Circuit struct {
-	Name                 string             `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
-	WaterConsumption     float64            `protobuf:"fixed64,2,opt,name=WaterConsumption,proto3" json:"WaterConsumption,omitempty"`
-	State                bool               `protobuf:"varint,3,opt,name=State,proto3" json:"State,omitempty"`
-	TimeRemaining        *duration.Duration `protobuf:"bytes,4,opt,name=TimeRemaining,proto3" json:"TimeRemaining,omitempty"`
+	Name             string  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description      string  `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	WaterConsumption float64 `protobuf:"fixed64,3,opt,name=water_consumption,json=waterConsumption,proto3" json:"water_consumption,omitempty"`
+	// true indicates this circuit is currently disabled
+	Disabled bool `protobuf:"varint,4,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	// true indicates actively watering
+	State                bool               `protobuf:"varint,5,opt,name=state,proto3" json:"state,omitempty"`
+	TimeRemaining        *duration.Duration `protobuf:"bytes,6,opt,name=time_remaining,json=timeRemaining,proto3" json:"time_remaining,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
 	XXX_unrecognized     []byte             `json:"-"`
 	XXX_sizecache        int32              `json:"-"`
@@ -67,11 +71,25 @@ func (m *Circuit) GetName() string {
 	return ""
 }
 
+func (m *Circuit) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
 func (m *Circuit) GetWaterConsumption() float64 {
 	if m != nil {
 		return m.WaterConsumption
 	}
 	return 0
+}
+
+func (m *Circuit) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
 }
 
 func (m *Circuit) GetState() bool {
@@ -89,6 +107,8 @@ func (m *Circuit) GetTimeRemaining() *duration.Duration {
 }
 
 type ListCircuitsRequest struct {
+	PageSize             int32    `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken            string   `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -119,8 +139,23 @@ func (m *ListCircuitsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListCircuitsRequest proto.InternalMessageInfo
 
+func (m *ListCircuitsRequest) GetPageSize() int32 {
+	if m != nil {
+		return m.PageSize
+	}
+	return 0
+}
+
+func (m *ListCircuitsRequest) GetPageToken() string {
+	if m != nil {
+		return m.PageToken
+	}
+	return ""
+}
+
 type ListCircuitsResponse struct {
-	Items                []*Circuit `protobuf:"bytes,1,rep,name=Items,proto3" json:"Items,omitempty"`
+	Items                []*Circuit `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	NextPageToken        string     `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
 	XXX_unrecognized     []byte     `json:"-"`
 	XXX_sizecache        int32      `json:"-"`
@@ -158,33 +193,129 @@ func (m *ListCircuitsResponse) GetItems() []*Circuit {
 	return nil
 }
 
+func (m *ListCircuitsResponse) GetNextPageToken() string {
+	if m != nil {
+		return m.NextPageToken
+	}
+	return ""
+}
+
+type GetCircuitRequest struct {
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetCircuitRequest) Reset()         { *m = GetCircuitRequest{} }
+func (m *GetCircuitRequest) String() string { return proto.CompactTextString(m) }
+func (*GetCircuitRequest) ProtoMessage()    {}
+func (*GetCircuitRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c75169631e9774f8, []int{3}
+}
+
+func (m *GetCircuitRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetCircuitRequest.Unmarshal(m, b)
+}
+func (m *GetCircuitRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetCircuitRequest.Marshal(b, m, deterministic)
+}
+func (m *GetCircuitRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetCircuitRequest.Merge(m, src)
+}
+func (m *GetCircuitRequest) XXX_Size() int {
+	return xxx_messageInfo_GetCircuitRequest.Size(m)
+}
+func (m *GetCircuitRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetCircuitRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetCircuitRequest proto.InternalMessageInfo
+
+func (m *GetCircuitRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type UpdateCircuitRequest struct {
+	Circuit              *Circuit `protobuf:"bytes,1,opt,name=circuit,proto3" json:"circuit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateCircuitRequest) Reset()         { *m = UpdateCircuitRequest{} }
+func (m *UpdateCircuitRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateCircuitRequest) ProtoMessage()    {}
+func (*UpdateCircuitRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c75169631e9774f8, []int{4}
+}
+
+func (m *UpdateCircuitRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateCircuitRequest.Unmarshal(m, b)
+}
+func (m *UpdateCircuitRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateCircuitRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateCircuitRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateCircuitRequest.Merge(m, src)
+}
+func (m *UpdateCircuitRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateCircuitRequest.Size(m)
+}
+func (m *UpdateCircuitRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateCircuitRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateCircuitRequest proto.InternalMessageInfo
+
+func (m *UpdateCircuitRequest) GetCircuit() *Circuit {
+	if m != nil {
+		return m.Circuit
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Circuit)(nil), "sprinklers.Circuit")
 	proto.RegisterType((*ListCircuitsRequest)(nil), "sprinklers.ListCircuitsRequest")
 	proto.RegisterType((*ListCircuitsResponse)(nil), "sprinklers.ListCircuitsResponse")
+	proto.RegisterType((*GetCircuitRequest)(nil), "sprinklers.GetCircuitRequest")
+	proto.RegisterType((*UpdateCircuitRequest)(nil), "sprinklers.UpdateCircuitRequest")
 }
 
 func init() { proto.RegisterFile("sprinklers.proto", fileDescriptor_c75169631e9774f8) }
 
 var fileDescriptor_c75169631e9774f8 = []byte{
-	// 269 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x90, 0x5d, 0x4b, 0xc3, 0x30,
-	0x14, 0x86, 0x8d, 0xdb, 0xfc, 0x38, 0x53, 0x28, 0xd9, 0x84, 0xba, 0x0b, 0x0d, 0xbd, 0xaa, 0x5e,
-	0x74, 0x50, 0x7f, 0x80, 0xc8, 0xbc, 0x11, 0xc4, 0x8b, 0x54, 0xf0, 0x3a, 0x9b, 0xc7, 0x12, 0x5c,
-	0x92, 0x9a, 0x0f, 0x7f, 0x8f, 0x3f, 0x55, 0x6c, 0x3a, 0xec, 0xd0, 0xdd, 0x25, 0xef, 0x79, 0xde,
-	0xf0, 0xe4, 0x40, 0xe2, 0x1a, 0x2b, 0xf5, 0xfb, 0x1a, 0xad, 0x2b, 0x1a, 0x6b, 0xbc, 0xa1, 0xf0,
-	0x9b, 0xcc, 0x2e, 0x6a, 0x63, 0xea, 0x35, 0xce, 0xdb, 0xc9, 0x32, 0xbc, 0xcd, 0x5f, 0x83, 0x15,
-	0x5e, 0x1a, 0x1d, 0xd9, 0xec, 0x8b, 0xc0, 0xe1, 0x42, 0xda, 0x55, 0x90, 0x9e, 0x52, 0x18, 0x3e,
-	0x09, 0x85, 0x29, 0x61, 0x24, 0x3f, 0xe6, 0xed, 0x99, 0x5e, 0x43, 0xf2, 0x22, 0x3c, 0xda, 0x85,
-	0xd1, 0x2e, 0xa8, 0xe6, 0xa7, 0x99, 0xee, 0x33, 0x92, 0x13, 0xfe, 0x27, 0xa7, 0x53, 0x18, 0x55,
-	0x5e, 0x78, 0x4c, 0x07, 0x8c, 0xe4, 0x47, 0x3c, 0x5e, 0xe8, 0x2d, 0x9c, 0x3e, 0x4b, 0x85, 0x1c,
-	0x95, 0x90, 0x5a, 0xea, 0x3a, 0x1d, 0x32, 0x92, 0x8f, 0xcb, 0xf3, 0x22, 0x9a, 0x15, 0x1b, 0xb3,
-	0xe2, 0xbe, 0x33, 0xe3, 0xdb, 0x7c, 0x76, 0x06, 0x93, 0x47, 0xe9, 0x7c, 0x67, 0xe9, 0x38, 0x7e,
-	0x04, 0x74, 0x3e, 0xbb, 0x83, 0xe9, 0x76, 0xec, 0x1a, 0xa3, 0x1d, 0xd2, 0x2b, 0x18, 0x3d, 0x78,
-	0x54, 0x2e, 0x25, 0x6c, 0x90, 0x8f, 0xcb, 0x49, 0xd1, 0xdb, 0x4f, 0x07, 0xf3, 0x48, 0x94, 0x35,
-	0x24, 0xd5, 0x66, 0x58, 0xa1, 0xfd, 0x94, 0x2b, 0xa4, 0x15, 0x9c, 0xf4, 0x9f, 0xa5, 0x97, 0xfd,
-	0xfe, 0x3f, 0x1e, 0x33, 0xb6, 0x1b, 0x88, 0x46, 0xd9, 0xde, 0xf2, 0xa0, 0xfd, 0xe4, 0xcd, 0x77,
-	0x00, 0x00, 0x00, 0xff, 0xff, 0xdb, 0x5f, 0xb8, 0xee, 0xac, 0x01, 0x00, 0x00,
+	// 415 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0xc1, 0x6f, 0xd3, 0x30,
+	0x14, 0xc6, 0x67, 0xb6, 0x6e, 0xdd, 0x2b, 0x85, 0xee, 0xad, 0x87, 0x50, 0x34, 0x88, 0x72, 0x80,
+	0x20, 0x44, 0x26, 0x95, 0x23, 0x17, 0xc4, 0x40, 0x5c, 0x38, 0x80, 0x0b, 0xe7, 0xca, 0x4d, 0x1e,
+	0x95, 0xb5, 0xc6, 0x0e, 0xb6, 0x03, 0x68, 0x7f, 0x2d, 0x47, 0xfe, 0x0c, 0x14, 0xbb, 0x59, 0x33,
+	0xda, 0xde, 0xe2, 0xef, 0xfb, 0x3d, 0xbf, 0xf7, 0xf9, 0x05, 0x46, 0xb6, 0x32, 0x52, 0x5d, 0xaf,
+	0xc8, 0xd8, 0xac, 0x32, 0xda, 0x69, 0x84, 0x8d, 0x32, 0x79, 0xb2, 0xd4, 0x7a, 0xb9, 0xa2, 0x4b,
+	0xef, 0x2c, 0xea, 0xef, 0x97, 0x45, 0x6d, 0x84, 0x93, 0x5a, 0x05, 0x36, 0xf9, 0xc3, 0xe0, 0xe4,
+	0x4a, 0x9a, 0xbc, 0x96, 0x0e, 0x11, 0x8e, 0x94, 0x28, 0x29, 0x62, 0x31, 0x4b, 0x4f, 0xb9, 0xff,
+	0xc6, 0x18, 0x06, 0x05, 0xd9, 0xdc, 0xc8, 0xaa, 0x29, 0x8a, 0xee, 0x79, 0xab, 0x2b, 0xe1, 0x4b,
+	0x38, 0xfb, 0x25, 0x1c, 0x99, 0x79, 0xae, 0x95, 0xad, 0xcb, 0xc0, 0x1d, 0xc6, 0x2c, 0x65, 0x7c,
+	0xe4, 0x8d, 0xab, 0x8d, 0x8e, 0x13, 0xe8, 0x17, 0xd2, 0x8a, 0xc5, 0x8a, 0x8a, 0xe8, 0x28, 0x66,
+	0x69, 0x9f, 0xdf, 0x9e, 0x71, 0x0c, 0x3d, 0xeb, 0x84, 0xa3, 0xa8, 0xe7, 0x8d, 0x70, 0xc0, 0xb7,
+	0xf0, 0xc0, 0xc9, 0x92, 0xe6, 0x86, 0x4a, 0x21, 0x95, 0x54, 0xcb, 0xe8, 0x38, 0x66, 0xe9, 0x60,
+	0xfa, 0x28, 0x0b, 0xc9, 0xb2, 0x36, 0x59, 0xf6, 0x7e, 0x9d, 0x8c, 0x0f, 0x9b, 0x02, 0xde, 0xf2,
+	0xc9, 0x17, 0x38, 0xff, 0x24, 0xad, 0x5b, 0xa7, 0xb4, 0x9c, 0x7e, 0xd4, 0x64, 0x1d, 0x3e, 0x86,
+	0xd3, 0x4a, 0x2c, 0x69, 0x6e, 0xe5, 0x4d, 0x88, 0xdc, 0xe3, 0xfd, 0x46, 0x98, 0xc9, 0x1b, 0xc2,
+	0x0b, 0x00, 0x6f, 0x3a, 0x7d, 0x4d, 0x6d, 0x6a, 0x8f, 0x7f, 0x6d, 0x84, 0x44, 0xc2, 0xf8, 0xee,
+	0x95, 0xb6, 0xd2, 0xca, 0x12, 0xbe, 0x80, 0x9e, 0x74, 0x54, 0xda, 0x88, 0xc5, 0x87, 0xe9, 0x60,
+	0x7a, 0x9e, 0x75, 0x76, 0xb3, 0x86, 0x79, 0x20, 0xf0, 0x19, 0x3c, 0x54, 0xf4, 0xdb, 0xcd, 0xb7,
+	0xda, 0x0c, 0x1b, 0xf9, 0xf3, 0x6d, 0xab, 0xe7, 0x70, 0xf6, 0x91, 0xda, 0x4e, 0xed, 0xec, 0x3b,
+	0x36, 0x95, 0x7c, 0x80, 0xf1, 0xb7, 0xaa, 0x10, 0x8e, 0xfe, 0x63, 0x5f, 0xc1, 0x49, 0x1e, 0x14,
+	0x8f, 0xef, 0x99, 0xaa, 0x65, 0xa6, 0x7f, 0x19, 0x8c, 0x66, 0xad, 0x3f, 0x23, 0xf3, 0x53, 0xe6,
+	0x84, 0x33, 0xb8, 0xdf, 0xcd, 0x8b, 0x4f, 0xbb, 0x57, 0xec, 0x78, 0xdc, 0x49, 0xbc, 0x1f, 0x08,
+	0x4f, 0x95, 0x1c, 0xe0, 0x3b, 0x80, 0x4d, 0x32, 0xbc, 0xe8, 0x56, 0x6c, 0x25, 0x9e, 0xec, 0x1a,
+	0x3a, 0x39, 0xc0, 0x37, 0x30, 0xbc, 0x13, 0x1a, 0x77, 0x71, 0x7b, 0x8a, 0x17, 0xc7, 0xfe, 0xd7,
+	0x79, 0xfd, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x4f, 0xac, 0xd3, 0x04, 0x42, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -200,6 +331,8 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SprinklerServiceClient interface {
 	ListCircuits(ctx context.Context, in *ListCircuitsRequest, opts ...grpc.CallOption) (*ListCircuitsResponse, error)
+	GetCircuit(ctx context.Context, in *GetCircuitRequest, opts ...grpc.CallOption) (*Circuit, error)
+	UpdateCircuit(ctx context.Context, in *Circuit, opts ...grpc.CallOption) (*Circuit, error)
 }
 
 type sprinklerServiceClient struct {
@@ -219,9 +352,29 @@ func (c *sprinklerServiceClient) ListCircuits(ctx context.Context, in *ListCircu
 	return out, nil
 }
 
+func (c *sprinklerServiceClient) GetCircuit(ctx context.Context, in *GetCircuitRequest, opts ...grpc.CallOption) (*Circuit, error) {
+	out := new(Circuit)
+	err := c.cc.Invoke(ctx, "/sprinklers.SprinklerService/GetCircuit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sprinklerServiceClient) UpdateCircuit(ctx context.Context, in *Circuit, opts ...grpc.CallOption) (*Circuit, error) {
+	out := new(Circuit)
+	err := c.cc.Invoke(ctx, "/sprinklers.SprinklerService/UpdateCircuit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SprinklerServiceServer is the server API for SprinklerService service.
 type SprinklerServiceServer interface {
 	ListCircuits(context.Context, *ListCircuitsRequest) (*ListCircuitsResponse, error)
+	GetCircuit(context.Context, *GetCircuitRequest) (*Circuit, error)
+	UpdateCircuit(context.Context, *Circuit) (*Circuit, error)
 }
 
 // UnimplementedSprinklerServiceServer can be embedded to have forward compatible implementations.
@@ -230,6 +383,12 @@ type UnimplementedSprinklerServiceServer struct {
 
 func (*UnimplementedSprinklerServiceServer) ListCircuits(ctx context.Context, req *ListCircuitsRequest) (*ListCircuitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCircuits not implemented")
+}
+func (*UnimplementedSprinklerServiceServer) GetCircuit(ctx context.Context, req *GetCircuitRequest) (*Circuit, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCircuit not implemented")
+}
+func (*UnimplementedSprinklerServiceServer) UpdateCircuit(ctx context.Context, req *Circuit) (*Circuit, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCircuit not implemented")
 }
 
 func RegisterSprinklerServiceServer(s *grpc.Server, srv SprinklerServiceServer) {
@@ -254,6 +413,42 @@ func _SprinklerService_ListCircuits_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SprinklerService_GetCircuit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCircuitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SprinklerServiceServer).GetCircuit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sprinklers.SprinklerService/GetCircuit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SprinklerServiceServer).GetCircuit(ctx, req.(*GetCircuitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SprinklerService_UpdateCircuit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Circuit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SprinklerServiceServer).UpdateCircuit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sprinklers.SprinklerService/UpdateCircuit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SprinklerServiceServer).UpdateCircuit(ctx, req.(*Circuit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _SprinklerService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sprinklers.SprinklerService",
 	HandlerType: (*SprinklerServiceServer)(nil),
@@ -261,6 +456,14 @@ var _SprinklerService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCircuits",
 			Handler:    _SprinklerService_ListCircuits_Handler,
+		},
+		{
+			MethodName: "GetCircuit",
+			Handler:    _SprinklerService_GetCircuit_Handler,
+		},
+		{
+			MethodName: "UpdateCircuit",
+			Handler:    _SprinklerService_UpdateCircuit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

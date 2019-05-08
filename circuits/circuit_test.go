@@ -24,7 +24,7 @@ func WriteSomeCircuitDefs(t *testing.T) {
 }
 
 func TestNoFileLoadCircuits(t *testing.T) {
-	dummyInit()
+	DummyInit()
 	log.Println("Loading circuits")
 	CircuitFile = "garbage"
 	circuits, err := LoadCircuits()
@@ -34,7 +34,7 @@ func TestNoFileLoadCircuits(t *testing.T) {
 }
 
 func TestIsDirLoadCircuits(t *testing.T) {
-	dummyInit()
+	DummyInit()
 	log.Println("Loading circuits")
 	CircuitFile = "/tmp/"
 	circuits, err := LoadCircuits()
@@ -44,7 +44,7 @@ func TestIsDirLoadCircuits(t *testing.T) {
 }
 
 func TestNotJSONLoadCircuits(t *testing.T) {
-	dummyInit()
+	DummyInit()
 	log.Println("Loading circuits")
 	CircuitFile = "/tmp/circuits.json"
 	err := ioutil.WriteFile(CircuitFile, []byte("not json data"), 0644)
@@ -56,7 +56,7 @@ func TestNotJSONLoadCircuits(t *testing.T) {
 }
 
 func TestEmptyJSONLoadCircuits(t *testing.T) {
-	dummyInit()
+	DummyInit()
 	log.Println("Loading circuits")
 	CircuitFile = "/tmp/circuits.json"
 	err := ioutil.WriteFile(CircuitFile, []byte("[]"), 0644)
@@ -68,7 +68,7 @@ func TestEmptyJSONLoadCircuits(t *testing.T) {
 }
 
 func TestAccumulation(t *testing.T) {
-	dummyInit()
+	DummyInit()
 	log.Println("Loading circuits")
 	WriteSomeCircuitDefs(t)
 	AccumulationUpdateInterval = 10 * time.Millisecond

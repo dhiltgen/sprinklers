@@ -6,22 +6,40 @@ import "google/protobuf/duration.proto";
 
 
 message Circuit {
-    string Name = 1;
-    double WaterConsumption = 2;
-    bool State = 3;
-    google.protobuf.Duration TimeRemaining = 4;
+    string name = 1;
+    string description = 2;
+    double water_consumption = 3;
+
+    // true indicates this circuit is currently disabled
+    bool disabled = 4;
+
+    // true indicates actively watering
+    bool state = 5;
+    google.protobuf.Duration time_remaining = 6;
 }
 
-message ListCircuitsRequest { }
+message ListCircuitsRequest {
+    int32 page_size = 1;
+    string page_token = 2;
+}
 message ListCircuitsResponse {
-    repeated Circuit Items = 1;
+    repeated Circuit items = 1;
+    string next_page_token = 2;
 }
 
+message GetCircuitRequest {
+    string name = 1;
+}
+
+message UpdateCircuitRequest {
+    Circuit circuit = 1;
+
+    // TODO - how to implement a FieldMask?
+}
 
 service SprinklerService {
     rpc ListCircuits (ListCircuitsRequest) returns (ListCircuitsResponse) {}
-    // TODO - StartCircuit
-    // TODO - StopCircuit
-    // TODO - InspectCircuit
+    rpc GetCircuit (GetCircuitRequest) returns (Circuit) {}
+    rpc UpdateCircuit (Circuit) returns (Circuit) {}
 }
 

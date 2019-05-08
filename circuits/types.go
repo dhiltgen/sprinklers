@@ -19,6 +19,9 @@ type CircuitDefinition struct {
 
 	// WaterConsumption is the approximate amount of water consumed by the circuit per hour
 	WaterConsumption float64 `json:"consumption"`
+
+	// Disabled if set to true indicates this circuit is currently unusable
+	Disabled bool `json:"disabled"`
 }
 
 type Circuit struct {

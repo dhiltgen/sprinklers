@@ -1,27 +1,32 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"log"
+	"os"
 
-	"google.golang.org/grpc"
+	"github.com/urfave/cli"
 
-	"github.com/dhiltgen/sprinklers/api/sprinklers"
+	"github.com/dhiltgen/sprinklers/client/cmd"
 )
 
-// TODO - replace with a "real" client
-
 func main() {
-	conn, err := grpc.Dial("localhost:1600", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("failed to dial: %s", err)
+	app := cli.NewApp()
+	app.Name = "Sprinklers"
+	app.Usage = "manage sprinkler circuits"
+	app.Commands = []cli.Command{
+		cmd.GetListCommand(),
+		cmd.GetUpdateCommand(),
 	}
-	client := sprinklers.NewSprinklerServiceClient(conn)
-
-	circuits, err := client.ListCircuits(context.Background(), &sprinklers.ListCircuitsRequest{})
-	if err != nil {
-		log.Fatalf("failed to get circuits: %s", err)
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "server",
+			Value: "sprinklers:1600",
+			Usage: "specify the sprinkler server to use",
+		},
 	}
-	fmt.Printf("Circuits: %#v", circuits)
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
