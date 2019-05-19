@@ -28,7 +28,10 @@ message ListCircuitsResponse {
 }
 
 message GetCircuitRequest {
+    // Provide an exact name
     string name = 1;
+    // or unambiguous description substring match
+    string description = 2;
 }
 
 message UpdateCircuitRequest {

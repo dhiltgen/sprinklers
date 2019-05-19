@@ -48,4 +48,4 @@ COPY --from=builder /bin/sprinklerd /bin
 COPY --from=builder /bin/sprinklers /bin
 COPY --from=builder /go/src/github.com/dhiltgen/sprinklers/circuits.json .
 
-CMD /bin/sprinklerd
+ENTRYPOINT ["/bin/sprinklerd"]

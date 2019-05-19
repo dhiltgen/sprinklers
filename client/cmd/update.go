@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"text/tabwriter"
 	"text/template"
 
@@ -37,9 +38,17 @@ func GetUpdateCommand() cli.Command {
 		},
 		Action: func(c *cli.Context) error {
 			if c.NArg() != 1 {
-				return fmt.Errorf("you must specify a circuit by name/number")
+				return fmt.Errorf("you must specify a circuit by name/number or description")
 			}
+			req := sprinklers.GetCircuitRequest{}
 			name := c.Args().Get(0)
+			_, err := strconv.ParseUint(name, 10, 64)
+			if err != nil {
+				req.Description = name
+			} else {
+				req.Name = name
+			}
+
 			client, err := getClient(c.GlobalString("server"))
 			if err != nil {
 				return fmt.Errorf("failed to connect to sprinkler server: %s", err)
@@ -50,9 +59,7 @@ func GetUpdateCommand() cli.Command {
 				return fmt.Errorf("you must only specify one start or stop action")
 			}
 
-			circuit, err := client.GetCircuit(context.Background(), &sprinklers.GetCircuitRequest{
-				Name: name,
-			})
+			circuit, err := client.GetCircuit(context.Background(), &req)
 			if err != nil {
 				log.Fatalf("failed to get circuit: %s", err)
 			}

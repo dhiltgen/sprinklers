@@ -1,25 +1,30 @@
 [
     {
+        "disabled": true,
         "gpio": 6,
         "name": "Circuit 4 Left",
         "consumption": 1.0
     },
     {
+        "disabled": true,
         "gpio": 5,
         "name": "Circuit 5 Left",
         "consumption": 1.0
     },
     {
+        "disabled": true,
         "gpio": 21,
         "name": "Circuit 6 Left",
         "consumption": 1.0
     },
     {
+        "disabled": true,
         "gpio": 20,
         "name": "Circuit 7 Left",
         "consumption": 1.0
     },
     {
+        "disabled": true,
         "gpio": 16,
         "name": "Circuit 8 Left",
         "consumption": 1.0

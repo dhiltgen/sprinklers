@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"text/template"
 
@@ -18,12 +19,22 @@ const listTmpl = "{{.Name}}\t{{.Description}}\t{{.State}}\t{{.TimeRemaining}}\n"
 func GetListCommand() cli.Command {
 	t := template.Must(template.New("circuit").Parse(listTmpl))
 	return cli.Command{
-		Name:  "list",
-		Usage: "list the available sprinkler circuits",
+		Name:    "list",
+		Usage:   "list the available sprinkler circuits",
+		Aliases: []string{"ls"},
+
 		Flags: []cli.Flag{
-			cli.BoolTFlag{
+			cli.BoolFlag{
 				Name:  "all",
 				Usage: "also show disabled circuits",
+			},
+			cli.BoolFlag{
+				Name:  "quiet, q",
+				Usage: "only report circuit name",
+			},
+			cli.StringFlag{
+				Name:  "filter",
+				Usage: "only show circuits matching the description string",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -37,16 +48,27 @@ func GetListCommand() cli.Command {
 				log.Fatalf("failed to get circuits: %s", err)
 			}
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0)
-			fmt.Fprintln(w, "NAME\tDESCRIPTION\tWATERING NOW\tTIME REMAINING")
+			if !c.Bool("quiet") {
+				fmt.Fprintln(w, "NAME\tDESCRIPTION\tWATERING NOW\tTIME REMAINING")
+			}
+			filter := c.String("filter")
 			for _, circuit := range resp.Items {
 				if circuit.Disabled && !c.Bool("all") {
 					continue
 				}
-				err := t.Execute(w, circuit)
-				if err != nil {
-					log.Fatalf("failed to render circuit: %#v: %s", circuit, err)
+				if filter != "" && !strings.Contains(circuit.Description, filter) {
+					continue
+				}
+				if !c.Bool("quiet") {
+					err := t.Execute(w, circuit)
+					if err != nil {
+						log.Fatalf("failed to render circuit: %#v: %s", circuit, err)
+					}
+				} else {
+					fmt.Println(circuit.Name)
 				}
 			}
+
 			w.Flush()
 			return nil
 		},

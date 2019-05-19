@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/dhiltgen/sprinklers/circuits"
@@ -14,9 +15,12 @@ type server struct {
 	circuits []*circuits.Circuit
 }
 
-func NewSprinklerServiceServer() SprinklerServiceServer {
+func NewSprinklerServiceServer(dummy bool) SprinklerServiceServer {
 	// TODO - for testing only
-	circuits.DummyInit()
+	if dummy {
+		log.Printf("Running in dummy data mode...")
+		circuits.DummyInit()
+	}
 
 	log.Printf("Starting sprinkler gRPC server")
 
@@ -44,11 +48,20 @@ func (s *server) ListCircuits(ctx context.Context, _ *ListCircuitsRequest) (*Lis
 
 func (s *server) GetCircuit(ctx context.Context, input *GetCircuitRequest) (*Circuit, error) {
 	log.Printf("GetCircuit called")
+	descriptionMatches := []*Circuit{}
 	for _, c := range s.circuits {
 		circuit := convertCircuit(c)
-		if circuit.Name == input.Name {
+		if input.Name != "" && circuit.Name == input.Name {
 			return circuit, nil
 		}
+		if input.Description != "" && strings.Contains(circuit.Description, input.Description) {
+			descriptionMatches = append(descriptionMatches, circuit)
+		}
+	}
+	if len(descriptionMatches) > 1 {
+		return nil, fmt.Errorf("ambiguous description matched %d circuits", len(descriptionMatches))
+	} else if len(descriptionMatches) == 1 {
+		return descriptionMatches[0], nil
 	}
 	return nil, fmt.Errorf("unable to located circuit %s", input.Name)
 
