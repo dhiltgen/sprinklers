@@ -12,6 +12,8 @@ simpler model driving relays via GPIO.  The number of circuits I have is less
 than the number of available GPIO circuits on the PI, so the added complexity
 of MUXing control of multiple circuits was overkill.
 
+<img src="http://www.hiltgen.com/daniel/electronics/sprinkler_controller.jpg" width="400">
+
 
 ## Deploying
 
