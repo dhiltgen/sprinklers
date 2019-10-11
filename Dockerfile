@@ -45,8 +45,9 @@ RUN go build -a -tags "netgo static_build" -installsuffix netgo \
 
 # Unit test setup
 FROM builder as test
-RUN go test -coverprofile=/cover.out -v github.com/dhiltgen/sprinklers/...
+RUN go test -mod=vendor -cover -covermode=count -coverprofile=/cover.out -v github.com/dhiltgen/sprinklers/...
 RUN go tool cover -html=./cover.out -o /cover.html
+RUN go fmt github.com/dhiltgen/sprinklers/...
 RUN go list github.com/dhiltgen/sprinklers/... | grep -v /vendor/ | xargs golint -set_exit_status
 
 # Target for easily extracing the coverage log
