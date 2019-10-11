@@ -8,13 +8,9 @@ Supports simple operations such as:
 	- Pin read (high/low)
 	- Pin edge detection (no/rise/fall/any)
 	- Pull up/down/off
-Also clock/pwm related oparations:
+And clock/pwm related oparations:
 	- Set Clock frequency
 	- Set Duty cycle
-And SPI oparations:
-	- SPI transmit/recieve/exchange bytes
-	- Chip select
-	- Set speed
 
 Example of use:
 
@@ -89,8 +85,6 @@ const (
 	gpioOffset  = 0x200000
 	clkOffset   = 0x101000
 	pwmOffset   = 0x20C000
-	spiOffset   = 0x204000
-	intrOffset  = 0x00B000
 
 	memLength = 4096
 )
@@ -99,10 +93,6 @@ var (
 	gpioBase int64
 	clkBase  int64
 	pwmBase  int64
-	spiBase  int64
-	intrBase int64
-
-	irqsBackup uint64
 )
 
 func init() {
@@ -110,8 +100,6 @@ func init() {
 	gpioBase = base + gpioOffset
 	clkBase = base + clkOffset
 	pwmBase = base + pwmOffset
-	spiBase = base + spiOffset
-	intrBase = base + intrOffset
 }
 
 // Pin mode, a pin can be set in Input or Output, Clock or Pwm mode
@@ -120,7 +108,6 @@ const (
 	Output
 	Clock
 	Pwm
-	Spi
 )
 
 // State of pin, High / Low
@@ -150,41 +137,37 @@ var (
 	gpioMem  []uint32
 	clkMem   []uint32
 	pwmMem   []uint32
-	spiMem   []uint32
-	intrMem  []uint32
 	gpioMem8 []uint8
 	clkMem8  []uint8
 	pwmMem8  []uint8
-	spiMem8  []uint8
-	intrMem8 []uint8
 )
 
-// Input: Set pin as Input
+// Set pin as Input
 func (pin Pin) Input() {
 	PinMode(pin, Input)
 }
 
-// Output: Set pin as Output
+// Set pin as Output
 func (pin Pin) Output() {
 	PinMode(pin, Output)
 }
 
-// Clock: Set pin as Clock
+// Set pin as Clock
 func (pin Pin) Clock() {
 	PinMode(pin, Clock)
 }
 
-// Pwm: Set pin as Pwm
+// Set pin as Pwm
 func (pin Pin) Pwm() {
 	PinMode(pin, Pwm)
 }
 
-// High: Set pin High
+// Set pin High
 func (pin Pin) High() {
 	WritePin(pin, High)
 }
 
-// Low: Set pin Low
+// Set pin Low
 func (pin Pin) Low() {
 	WritePin(pin, Low)
 }
@@ -194,22 +177,22 @@ func (pin Pin) Toggle() {
 	TogglePin(pin)
 }
 
-// Freq: Set frequency of Clock or Pwm pin (see doc of SetFreq)
+// Set frequency of Clock or Pwm pin (see doc of SetFreq)
 func (pin Pin) Freq(freq int) {
 	SetFreq(pin, freq)
 }
 
-// DutyCycle: Set duty cycle for Pwm pin (see doc of SetDutyCycle)
+// Set duty cycle for Pwm pin (see doc of SetDutyCycle)
 func (pin Pin) DutyCycle(dutyLen, cycleLen uint32) {
 	SetDutyCycle(pin, dutyLen, cycleLen)
 }
 
-// Mode: Set pin Mode
+// Set pin Mode
 func (pin Pin) Mode(mode Mode) {
 	PinMode(pin, mode)
 }
 
-// Write: Set pin state (high/low)
+// Set pin state (high/low)
 func (pin Pin) Write(state State) {
 	WritePin(pin, state)
 }
@@ -219,42 +202,40 @@ func (pin Pin) Read() State {
 	return ReadPin(pin)
 }
 
-// Pull: Set a given pull up/down mode
+// Set a given pull up/down mode
 func (pin Pin) Pull(pull Pull) {
 	PullMode(pin, pull)
 }
 
-// PullUp: Pull up pin
+// Pull up pin
 func (pin Pin) PullUp() {
 	PullMode(pin, PullUp)
 }
 
-// PullDown: Pull down pin
+// Pull down pin
 func (pin Pin) PullDown() {
 	PullMode(pin, PullDown)
 }
 
-// PullOff: Disable pullup/down on pin
+// Disable pullup/down on pin
 func (pin Pin) PullOff() {
 	PullMode(pin, PullOff)
 }
 
-// Detect: Enable edge event detection on pin
+// Enable edge event detection on pin
 func (pin Pin) Detect(edge Edge) {
 	DetectEdge(pin, edge)
 }
 
-// EdgeDetected checks edge event on pin
+// Check edge event on pin
 func (pin Pin) EdgeDetected() bool {
 	return EdgeDetected(pin)
 }
 
-// PinMode sets the mode of a given pin (Input, Output, Clock, Pwm or Spi)
+// PinMode sets the mode (direction) of a given pin (Input, Output, Clock or Pwm)
 //
 // Clock is possible only for pins 4, 5, 6, 20, 21.
 // Pwm is possible only for pins 12, 13, 18, 19.
-//
-// Spi mode should not be set by this directly, use SpiBegin instead.
 func PinMode(pin Pin, mode Mode) {
 
 	// Pin fsel register, 0 or 1 depending on bank
@@ -262,17 +243,14 @@ func PinMode(pin Pin, mode Mode) {
 	shift := (uint8(pin) % 10) * 3
 	f := uint32(0)
 
-	const in = 0   // 000
-	const out = 1  // 001
 	const alt0 = 4 // 100
-	const alt4 = 3 // 011
 	const alt5 = 2 // 010
 
 	switch mode {
 	case Input:
-		f = in
+		f = 0 // 000
 	case Output:
-		f = out
+		f = 1 // 001
 	case Clock:
 		switch pin {
 		case 4, 5, 6, 32, 34, 42, 43, 44:
@@ -291,25 +269,12 @@ func PinMode(pin Pin, mode Mode) {
 		default:
 			return
 		}
-	case Spi:
-		switch pin {
-		case 7, 8, 9, 10, 11: // SPI0
-			f = alt0
-		case 35, 36, 37, 38, 39: // SPI0
-			f = alt0
-		case 16, 17, 18, 19, 20, 21: // SPI1
-			f = alt4
-		case 40, 41, 42, 43, 44, 45: // SPI2
-			f = alt4
-		default:
-			return
-		}
 	}
 
 	memlock.Lock()
 	defer memlock.Unlock()
 
-	const pinMask = 7 // 111 - pinmode is 3 bits
+	const pinMask = 7 // 0b111 - pinmode is 3 bits
 
 	gpioMem[fselReg] = (gpioMem[fselReg] &^ (pinMask << shift)) | (f << shift)
 }
@@ -334,7 +299,7 @@ func WritePin(pin Pin, state State) {
 	memlock.Unlock() // not deferring saves ~600ns
 }
 
-// ReadPin reads the state of a pin
+// Read the state of a pin
 func ReadPin(pin Pin) State {
 	// Input level register offset (13 / 14 depending on bank)
 	levelReg := uint8(pin)/32 + 13
@@ -346,7 +311,7 @@ func ReadPin(pin Pin) State {
 	return Low
 }
 
-// TogglePin: Toggle a pin state (high -> low -> high)
+// Toggle a pin state (high -> low -> high)
 func TogglePin(pin Pin) {
 	p := uint8(pin)
 
@@ -366,26 +331,18 @@ func TogglePin(pin Pin) {
 	memlock.Unlock()
 }
 
-// DetectEdge: Enable edge event detection on pin.
+// Enable edge event detection on pin.
 //
 // Combine with pin.EdgeDetected() to check whether event occured.
 //
 // Note that using this function might conflict with the same functionality of other gpio library.
 //
-// It also clears previously detected event of this pin if there was any.
+// It also clears previously detected event of this pin if any.
 //
 // Note that call with RiseEdge will disable previously set FallEdge detection and vice versa.
 // You have to call with AnyEdge, to enable detection for both edges.
 // To disable previously enabled detection call it with NoEdge.
-//
-// WARNING: this might make your Pi unresponsive, if this happens, you should either run the code as root,
-// or add `dtoverlay=gpio-no-irq` to `/boot/config.txt` and restart your pi,
 func DetectEdge(pin Pin, edge Edge) {
-	if edge != NoEdge {
-		// disable GPIO event interruption to prevent freezing in some cases
-		DisableIRQs(1<<49 | 1<<52) // gpio_int[0] and gpio_int[3]
-	}
-
 	p := uint8(pin)
 
 	// Rising edge detect enable register (19/20 depending on bank)
@@ -398,20 +355,20 @@ func DetectEdge(pin Pin, edge Edge) {
 	bit := uint32(1 << (p & 31))
 
 	if edge&RiseEdge > 0 { // set bit
-		gpioMem[renReg] |= bit
+		gpioMem[renReg] = gpioMem[renReg] | bit
 	} else { // clear bit
-		gpioMem[renReg] &^= bit
+		gpioMem[renReg] = gpioMem[renReg] &^ bit
 	}
 	if edge&FallEdge > 0 { // set bit
-		gpioMem[fenReg] |= bit
+		gpioMem[fenReg] = gpioMem[fenReg] | bit
 	} else { // clear bit
-		gpioMem[fenReg] &^= bit
+		gpioMem[fenReg] = gpioMem[fenReg] &^ bit
 	}
 
 	gpioMem[edsReg] = bit // to clear outdated detection
 }
 
-// EdgeDetected checks whether edge event occured since last call
+// Check whether edge event occured since last call
 // or since detection was enabled
 //
 // There is no way (yet) to handle interruption caused by edge event, you have to use polling.
@@ -439,9 +396,9 @@ func PullMode(pin Pin, pull Pull) {
 
 	switch pull {
 	case PullDown, PullUp:
-		gpioMem[pullReg] |= uint32(pull)
+		gpioMem[pullReg] = gpioMem[pullReg]&^3 | uint32(pull)
 	case PullOff:
-		gpioMem[pullReg] &^= 3
+		gpioMem[pullReg] = gpioMem[pullReg] &^ 3
 	}
 
 	// Wait for value to clock in, this is ugly, sorry :(
@@ -452,12 +409,12 @@ func PullMode(pin Pin, pull Pull) {
 	// Wait for value to clock in
 	time.Sleep(time.Microsecond)
 
-	gpioMem[pullReg] &^= 3
+	gpioMem[pullReg] = gpioMem[pullReg] &^ 3
 	gpioMem[pullClkReg] = 0
 
 }
 
-// SetFreq: Set clock speed for given pin in Clock or Pwm mode
+// Set clock speed for given pin in Clock or Pwm mode
 //
 // Param freq should be in range 4688Hz - 19.2MHz to prevent unexpected behavior,
 // however output frequency of Pwm pins can be further adjusted with SetDutyCycle.
@@ -531,7 +488,7 @@ func SetFreq(pin Pin, freq int) {
 	// NOTE without root permission this changes will simply do nothing successfully
 }
 
-// SetDutyCycle: Set cycle length (range) and duty length (data) for Pwm pin in M/S mode
+// Set cycle length (range) and duty length (data) for Pwm pin in M/S mode
 //
 //   |<- duty ->|
 //    __________
@@ -585,44 +542,18 @@ func SetDutyCycle(pin Pin, dutyLen, cycleLen uint32) {
 	// NOTE without root permission this changes will simply do nothing successfully
 }
 
-// StopPwm: Stop pwm for both channels
+// Stop pwm for both channels
 func StopPwm() {
 	const pwmCtlReg = 0
 	const pwen = 1
-	pwmMem[pwmCtlReg] &^= pwen<<8 | pwen
+	pwmMem[pwmCtlReg] = pwmMem[pwmCtlReg] &^ (pwen<<8 | pwen)
 }
 
-// StartPwm starts pwm for both channels
+// Start pwm for both channels
 func StartPwm() {
 	const pwmCtlReg = 0
 	const pwen = 1
-	pwmMem[pwmCtlReg] |= pwen<<8 | pwen
-}
-
-// EnableIRQs: Enables given IRQs (by setting bit to 1 at intended position).
-// See 'ARM peripherals interrupts table' in pheripherals datasheet.
-// WARNING: you can corrupt your system, only use this if you know what you are doing.
-func EnableIRQs(irqs uint64) {
-	const irqEnable1 = 0x210 / 4
-	const irqEnable2 = 0x214 / 4
-	intrMem[irqEnable1] = uint32(irqs)       // IRQ 0..31
-	intrMem[irqEnable2] = uint32(irqs >> 32) // IRQ 32..63
-}
-
-// DisableIRQs: Disables given IRQs (by setting bit to 1 at intended position).
-// See 'ARM peripherals interrupts table' in pheripherals datasheet.
-// WARNING: you can corrupt your system, only use this if you know what you are doing.
-func DisableIRQs(irqs uint64) {
-	const irqDisable1 = 0x21C / 4
-	const irqDisable2 = 0x220 / 4
-	intrMem[irqDisable1] = uint32(irqs)       // IRQ 0..31
-	intrMem[irqDisable2] = uint32(irqs >> 32) // IRQ 32..63
-}
-
-func backupIRQs() {
-	const irqEnable1 = 0x210 / 4
-	const irqEnable2 = 0x214 / 4
-	irqsBackup = uint64(intrMem[irqEnable2])<<32 | uint64(intrMem[irqEnable1])
+	pwmMem[pwmCtlReg] = pwmMem[pwmCtlReg] | pwen<<8 | pwen
 }
 
 // Open and memory map GPIO memory range from /dev/mem .
@@ -662,20 +593,6 @@ func Open() (err error) {
 		return
 	}
 
-	// Memory map spi registers to slice
-	spiMem, spiMem8, err = memMap(file.Fd(), spiBase)
-	if err != nil {
-		return
-	}
-
-	// Memory map interruption registers to slice
-	intrMem, intrMem8, err = memMap(file.Fd(), intrBase)
-	if err != nil {
-		return
-	}
-
-	backupIRQs() // back up enabled IRQs, to restore it later
-
 	return nil
 }
 
@@ -700,14 +617,16 @@ func memMap(fd uintptr, base int64) (mem []uint32, mem8 []byte, err error) {
 
 // Close unmaps GPIO memory
 func Close() error {
-	EnableIRQs(irqsBackup) // Return IRQs to state where it was before - just to be nice
-
 	memlock.Lock()
 	defer memlock.Unlock()
-	for _, mem8 := range [][]uint8{gpioMem8, clkMem8, pwmMem8, spiMem8, intrMem8} {
-		if err := syscall.Munmap(mem8); err != nil {
-			return err
-		}
+	if err := syscall.Munmap(gpioMem8); err != nil {
+		return err
+	}
+	if err := syscall.Munmap(clkMem8); err != nil {
+		return err
+	}
+	if err := syscall.Munmap(pwmMem8); err != nil {
+		return err
 	}
 	return nil
 }

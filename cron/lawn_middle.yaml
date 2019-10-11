@@ -1,0 +1,28 @@
+# Kubernetes cron yaml for activating the circuits
+#
+# TODO define separate config and drive some settings from that
+#
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+    name: lawn-middle
+spec:
+    schedule: "0 13 * * 1,3,5"
+    jobTemplate:
+        spec:
+            template:
+                spec:
+                    containers:
+                    - name: runner
+                      image: docker.io/dhiltgen/sprinklers:0.2.1
+                      imagePullPolicy: IfNotPresent
+                      resources:
+                        requests:
+                            memory: "10Mi"
+                      args:
+                      - update
+                      - --start
+                      - --stop-after
+                      - 8m
+                      - "lawn middle"
+                    restartPolicy: Never

@@ -1,4 +1,6 @@
-FROM golang:1.12-alpine as builder
+ARG GO_VERSION=1.13
+ARG ALPINE_VERSION=3.10
+FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} as builder
 
 # Get the baseline dependencies installed
 RUN apk --update add \
@@ -49,12 +51,14 @@ FROM scratch as coverage
 COPY --from=test /cover.* /
 
 # Minimal image for the daemon
-FROM alpine:3.9 as daemon
+ARG ALPINE_VERSION=3.10
+FROM alpine:${ALPINE_VERSION} as daemon
 COPY --from=builder /bin/sprinklerd /bin
 COPY --from=builder /go/src/github.com/dhiltgen/sprinklers/circuits.json .
 ENTRYPOINT ["/bin/sprinklerd"]
 
 # Minimal image for the client
-FROM alpine:3.9 as client
+ARG ALPINE_VERSION=3.10
+FROM alpine:${ALPINE_VERSION} as client
 COPY --from=builder /bin/sprinklers /bin
 ENTRYPOINT ["/bin/sprinklers"]

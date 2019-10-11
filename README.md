@@ -1,20 +1,23 @@
 # Sprinklers
 
-This repo contains a gRPC+REST sprinkler system aimed at Raspberry PIs
+This repo contains a gRPC+REST sprinkler irrigation system aimed at Raspberry PIs
 using [relays](https://www.amazon.com/gp/product/B00KTELP3I/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) hooked up to GPIO pins.
 
 ## Hardware
 
-I've tried a few different variations on driving sprinkler circuits.  My most
-recent incarnation and what I think is the simplest to get set up and running
-is based on a very simple GPIO based relay bank.
+I've tried a few different variations on driving sprinkler circuits over the
+years.  My first variant was based on 1-Wire, but that proved to be a bit
+complicated and finicky.  For my most recent iteration I switched to a much
+simpler model driving relays via GPIO.  The number of circuits I have is less
+than the number of available GPIO circuits on the PI, so the added complexity
+of MUXing control of multiple circuits was overkill.
 
 
 ## Deploying
 
-The automation in this repo assumes a Kubernetes cluster where at least one
-node in the cluster has a hostname "sprinklers" which is the target for the
-Deployment.
+The automation in this repo assumes you have a Kubernetes cluster where at
+least one node in the cluster has a hostname `sprinklers` which is the target
+for the Deployment.
 
 ```sh
 make deploy

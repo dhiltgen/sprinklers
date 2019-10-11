@@ -1,17 +1,24 @@
 # Super simple makefile
 
+# Base layer dependencies
+GO_VERSION=1.13
+ALPINE_VERSION=3.10
+
 # TODO wire up versioning consistently...
 #VERSION=
-TAG=latest # TODO version based
+TAG=0.2.1 # TODO version based
 ORG?=docker.io/dhiltgen
 DAEMON_IMAGE=$(ORG)/sprinklerd:$(TAG)
 CLIENT_IMAGE=$(ORG)/sprinklers:$(TAG)
 DOCKER?=docker
 
 # Using buildx for multi-arch
-DOCKER_BUILD=$(DOCKER) buildx build --platform linux/amd64,linux/arm/v7 --push
+DOCKER_BUILD=$(DOCKER) buildx build --push \
+    --build-arg GO_VERSION=$(GO_VERSION) \
+    --build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+    --platform linux/amd64,linux/arm/v7
 # Using regular build without multi-arch
-#DOCKER_BUILD=$(DOCKER) build
+#DOCKER_BUILD=$(DOCKER) build --build-arg GO_VERSION=$(GO_VERSION) --build-arg ALPINE_VERSION=$(ALPINE_VERSION)
 
 DOCKER_BUILDKIT=1
 export DOCKER_BUILDKIT
@@ -33,7 +40,7 @@ client:
 
 # Deploy the sprinkler service
 deploy:
-	kubectl apply -f ./sprinklerd.yml
+	kubectl apply -f ./sprinklerd.yaml
 
 # Show the node port that was assigned to the service
 # Example docker usage:
