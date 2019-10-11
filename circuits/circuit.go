@@ -31,8 +31,9 @@ func (c *Circuit) reportMetric() {
 		}).Set(c.accumulation)
 }
 
+// Update updates the settings for the circuit given the new input
+// For now, all we care about is State
 func (c *Circuit) Update(new *Circuit) error {
-	// For now, all we care about is State
 	if new.State != c.State {
 		c.State = new.State
 		if c.State {

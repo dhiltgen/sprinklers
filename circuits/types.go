@@ -10,6 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// CircuitDefinition defines the base settings for a circuit
 type CircuitDefinition struct {
 	// GPIONumber defines the GPIO Pin as defined by the CPU (not header)
 	GPIONumber uint8 `json:"gpio"`
@@ -24,6 +25,7 @@ type CircuitDefinition struct {
 	Disabled bool `json:"disabled"`
 }
 
+// Circuit expands a CircuitDefinition to include current state
 type Circuit struct {
 	CircuitDefinition
 	State         bool               `json:"state"`
@@ -36,7 +38,10 @@ type Circuit struct {
 	started      time.Time `json:-`
 }
 
+// CircuitFile defines where we load the circuit instance data from (json format)
 var CircuitFile = "circuits.json"
+
+// AccumulationUpdateInterval defines how frequently we update the accumulation of delivered water
 var AccumulationUpdateInterval = 10 * time.Second
 
 var accumulation = prometheus.NewGaugeVec(
@@ -51,6 +56,7 @@ func init() {
 	prometheus.MustRegister(accumulation)
 }
 
+// LoadCircuits will load up the known circuits from the definition file
 func LoadCircuits() ([]*Circuit, error) {
 
 	data, err := ioutil.ReadFile(CircuitFile)

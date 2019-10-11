@@ -15,6 +15,9 @@ type server struct {
 	circuits []*circuits.Circuit
 }
 
+// NewSprinklerServiceServer creates a new sprinkler server
+// if dummy is set to true, a test server will be created and will not
+// be hooked up to GPIO
 func NewSprinklerServiceServer(dummy bool) SprinklerServiceServer {
 	// TODO - for testing only
 	if dummy {

@@ -16,6 +16,7 @@ import (
 
 const listTmpl = "{{.Name}}\t{{.Description}}\t{{.State}}\t{{.TimeRemaining}}\n"
 
+// GetListCommand returns the list CLI command
 func GetListCommand() cli.Command {
 	t := template.Must(template.New("circuit").Parse(listTmpl))
 	return cli.Command{

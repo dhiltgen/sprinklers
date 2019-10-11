@@ -17,6 +17,7 @@ import (
 
 const updateTmpl = "{{.Name}}\t{{.Description}}\t{{.State}}\t{{.TimeRemaining}}\n"
 
+// GetUpdateCommand returns the update CLI command
 func GetUpdateCommand() cli.Command {
 	t := template.Must(template.New("circuit").Parse(listTmpl))
 	return cli.Command{

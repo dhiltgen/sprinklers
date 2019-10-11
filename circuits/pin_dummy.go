@@ -16,6 +16,7 @@ func newDummyPin(_ uint8) Pin {
 	return dummyPin{}
 }
 
+// DummyInit wires up for dummy initialization for testing
 func DummyInit() {
 	newPin = newDummyPin
 	pinsInit = func() error { return nil }

@@ -67,4 +67,7 @@ push:
 	$(DOCKER) push $(DAEMON_IMAGE)
 	$(DOCKER) push $(CLIENT_IMAGE)
 
-.PHONY: build daemon client test deploy coverage push
+fmt:
+	clang-format -i $$(find . -name \*.proto | grep -v "vendor/")
+
+.PHONY: build daemon client test deploy coverage push fmt

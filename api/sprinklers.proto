@@ -4,45 +4,43 @@ package sprinklers;
 
 import "google/protobuf/duration.proto";
 
-
 message Circuit {
-    string name = 1;
-    string description = 2;
-    double water_consumption = 3;
+  string name = 1;
+  string description = 2;
+  double water_consumption = 3;
 
-    // true indicates this circuit is currently disabled
-    bool disabled = 4;
+  // true indicates this circuit is currently disabled
+  bool disabled = 4;
 
-    // true indicates actively watering
-    bool state = 5;
-    google.protobuf.Duration time_remaining = 6;
+  // true indicates actively watering
+  bool state = 5;
+  google.protobuf.Duration time_remaining = 6;
 }
 
 message ListCircuitsRequest {
-    int32 page_size = 1;
-    string page_token = 2;
+  int32 page_size = 1;
+  string page_token = 2;
 }
 message ListCircuitsResponse {
-    repeated Circuit items = 1;
-    string next_page_token = 2;
+  repeated Circuit items = 1;
+  string next_page_token = 2;
 }
 
 message GetCircuitRequest {
-    // Provide an exact name
-    string name = 1;
-    // or unambiguous description substring match
-    string description = 2;
+  // Provide an exact name
+  string name = 1;
+  // or unambiguous description substring match
+  string description = 2;
 }
 
 message UpdateCircuitRequest {
-    Circuit circuit = 1;
+  Circuit circuit = 1;
 
-    // TODO - how to implement a FieldMask?
+  // TODO - how to implement a FieldMask?
 }
 
 service SprinklerService {
-    rpc ListCircuits (ListCircuitsRequest) returns (ListCircuitsResponse) {}
-    rpc GetCircuit (GetCircuitRequest) returns (Circuit) {}
-    rpc UpdateCircuit (Circuit) returns (Circuit) {}
+  rpc ListCircuits(ListCircuitsRequest) returns (ListCircuitsResponse) {}
+  rpc GetCircuit(GetCircuitRequest) returns (Circuit) {}
+  rpc UpdateCircuit(Circuit) returns (Circuit) {}
 }
-
